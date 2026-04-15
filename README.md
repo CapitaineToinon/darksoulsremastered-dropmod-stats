@@ -19,14 +19,6 @@ Fetches all verified speedrun submissions for **Dark Souls Remastered** from the
 
 ![All categories combined](plots/dark_souls_remastered_all_categories_combined.png)
 
-### Unique submitters per month (Dropmod vs No Dropmod)
-
-![Unique submitters](plots/dark_souls_remastered_unique_submitters_per_month_dropmod_vs_no_dropmod.png)
-
-### Unique submitters overall (Dropmod vs No Dropmod)
-
-![Unique submitters pie](plots/dark_souls_remastered_unique_submitters_dropmod_vs_no_dropmod_since_apr_2024.png)
-
 ### Per category
 
 ![Any%](plots/dark_souls_remastered_any.png)
@@ -35,6 +27,14 @@ Fetches all verified speedrun submissions for **Dark Souls Remastered** from the
 ![All Bosses](plots/dark_souls_remastered_all_bosses.png)
 ![All Achievements](plots/dark_souls_remastered_all_achievements.png)
 ![Glitchless](plots/dark_souls_remastered_glitchless.png)
+
+### Unique submitters per month (Dropmod vs No Dropmod)
+
+![Unique submitters](plots/dark_souls_remastered_unique_submitters_per_month_dropmod_vs_no_dropmod.png)
+
+### Unique submitters overall (Dropmod vs No Dropmod)
+
+![Unique submitters pie](plots/dark_souls_remastered_unique_submitters_dropmod_vs_no_dropmod_since_apr_2024.png)
 
 ### PC vs Console
 

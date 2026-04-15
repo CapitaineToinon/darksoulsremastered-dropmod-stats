@@ -239,6 +239,7 @@ def _plot(
     by_subcat: dict[str, dict[int, int]],
     bins: list[tuple[date, date]],
     title: str,
+    ylabel: str = "Runs submitted",
     show: bool = False,
 ) -> None:
     n = len(bins)
@@ -260,7 +261,7 @@ def _plot(
 
     ax.set_xticks(x)
     ax.set_xticklabels(x_labels, rotation=45, ha="right", fontsize=8)
-    ax.set_ylabel("Runs submitted")
+    ax.set_ylabel(ylabel)
     ax.set_title(title)
     ax.legend(title="Subcategory (total)", bbox_to_anchor=(1.01, 1), loc="upper left")
 
@@ -348,6 +349,7 @@ def plot_unique_submitters(
         by_subcat_counts,
         bins,
         title=f"{game_name} — Unique submitters per month (Dropmod vs No Dropmod)",
+        ylabel="Unique players",
         show=show,
     )
 
