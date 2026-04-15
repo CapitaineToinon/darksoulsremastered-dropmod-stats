@@ -381,10 +381,22 @@ def plot_submitter_pie(
     sizes = [len(players_by_label[l]) for l in labels]
     legend_labels = [f"{l} ({len(players_by_label[l])})" for l in labels]
 
+    all_sets = list(players_by_label.values())
+    both = len(all_sets[0] & all_sets[1]) if len(all_sets) == 2 else 0
+    total_unique = len(set.union(*all_sets))
+
     fig, ax = plt.subplots(figsize=(7, 7))
     ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90)
-    ax.set_title(f"{game_name} — Unique submitters: Dropmod vs No Dropmod")
+    since = bins[0][0].strftime("%b %Y")
+    ax.set_title(f"{game_name} — Unique submitters: Dropmod vs No Dropmod\nsince {since}")
     ax.legend(legend_labels, loc="lower center", bbox_to_anchor=(0.5, -0.05))
+    if both:
+        fig.text(
+            0.5, 0.01,
+            f"Note: {both} player(s) submitted both and are counted in each slice "
+            f"({total_unique} unique players in total).",
+            ha="center", fontsize=8, color="gray",
+        )
 
     PLOTS_DIR.mkdir(exist_ok=True)
     slug = re.sub(r"[^a-z0-9]+", "_", ax.get_title().lower()).strip("_")
