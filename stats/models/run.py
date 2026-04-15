@@ -5,6 +5,11 @@ class RunStatus(BaseModel):
     status: str
 
 
+class RunPlayer(BaseModel):
+    rel: str
+    id: str | None = None    # present for registered users, absent for guests
+
+
 class RunSystem(BaseModel):
     platform: str | None = None
 
@@ -23,6 +28,7 @@ class Run(BaseModel):
     values: dict[str, str]
     system: RunSystem
     times: RunTimes
+    players: list[RunPlayer]
 
 
 class Pagination(BaseModel):

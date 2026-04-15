@@ -287,7 +287,7 @@ def export_csv(
     with path.open("w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow([
-            "id", "category", "subcategory", "dropmod",
+            "id", "player_id", "category", "subcategory", "dropmod",
             "date", "platform",
             "time_primary", "time_realtime", "time_ingame",
         ])
@@ -295,8 +295,10 @@ def export_csv(
         for runs, subcategory_vars, category in all_runs:
             for run in runs:
                 platform_name = platform_map.get(run.system.platform or "", "Unknown")
+                player_id = next((p.id for p in run.players if p.id), "")
                 writer.writerow([
                     run.id,
+                    player_id,
                     category.name,
                     raw_subcategory_label(run, subcategory_vars),
                     subcategory_label(run, subcategory_vars) or "",
@@ -308,6 +310,46 @@ def export_csv(
                 ])
 
     print(f"Exported {sum(len(r) for r, _, _ in all_runs)} runs to {path}")
+
+
+def plot_unique_submitters(
+    all_runs: list[tuple[list[Run], list[Variable], Category]],
+    game_name: str,
+    bins: list[tuple[date, date]],
+    show: bool = False,
+) -> None:
+    by_subcat: dict[str, dict[int, set[str]]] = defaultdict(lambda: defaultdict(set))
+
+    for runs, subcategory_vars, _ in all_runs:
+        for run in runs:
+            if run.date is None:
+                continue
+            idx = run_month_index(date.fromisoformat(run.date), bins)
+            if idx is None:
+                continue
+            label = subcategory_label(run, subcategory_vars)
+            if label is None:
+                continue
+            player_id = next((p.id for p in run.players if p.id), None)
+            if player_id is None:
+                continue
+            by_subcat[label][idx].add(player_id)
+
+    if not by_subcat:
+        return
+
+    # Convert sets to counts before handing off to _plot
+    by_subcat_counts: dict[str, dict[int, int]] = {
+        label: {idx: len(players) for idx, players in months.items()}
+        for label, months in by_subcat.items()
+    }
+
+    _plot(
+        by_subcat_counts,
+        bins,
+        title=f"{game_name} — Unique submitters per month (Dropmod vs No Dropmod)",
+        show=show,
+    )
 
 
 def plot_pc_vs_console(
@@ -384,6 +426,7 @@ def main() -> None:
         plot_category(runs, subcategory_vars, category.name, game.names.international, bins, show=show)
 
     plot_summary([(r, v) for r, v, _ in dropmod_runs], game.names.international, bins, show=show)
+    plot_unique_submitters(dropmod_runs, game.names.international, bins, show=show)
     plot_pc_vs_console(all_runs, platform_map, game.names.international, show=show)
     export_csv(all_runs, platform_map, game.names.international)
 
