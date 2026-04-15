@@ -11,6 +11,25 @@ Fetches all verified speedrun submissions for **Dark Souls Remastered** from the
 - Exports all runs to a CSV file for independent verification
 - Caches all API responses to disk for one hour to avoid redundant requests; bypass with `--no-cache`
 
+## Plots
+
+### All categories combined
+
+![All categories combined](plots/dark_souls_remastered_all_categories_combined.png)
+
+### PC vs Console
+
+![PC vs Console](plots/dark_souls_remastered_pc_vs_console.png)
+
+### Per category
+
+![Any%](plots/dark_souls_remastered_any.png)
+![No Wrong Warp](plots/dark_souls_remastered_no_wrong_warp.png)
+![Any% Force Quit](plots/dark_souls_remastered_any_force_quit.png)
+![All Bosses](plots/dark_souls_remastered_all_bosses.png)
+![All Achievements](plots/dark_souls_remastered_all_achievements.png)
+![Glitchless](plots/dark_souls_remastered_glitchless.png)
+
 ## Data
 
 `dark_souls_remastered_runs.csv` contains all 2049 verified runs as of **2026-04-16**. Data may be outdated — re-run the script to fetch the latest from the API.
@@ -20,7 +39,8 @@ Columns: `id`, `category`, `date`, `platform`, `dropmod`
 ## Usage
 
 ```bash
-uv run python main.py
+uv run python main.py           # save plots to disk silently
+uv run python main.py --show    # also open plots interactively
 uv run python main.py --no-cache
 ```
 
@@ -36,6 +56,7 @@ Dependencies are managed by uv and defined in `pyproject.toml`. Run `uv sync` to
 ```
 main.py                           # Entry point
 dark_souls_remastered_runs.csv    # All verified runs as of 2026-04-16
+plots/                            # Generated PNG files
 stats/
   models/
     game.py           # Pydantic models for the /games endpoint
@@ -44,7 +65,6 @@ stats/
     variable.py       # Pydantic models for the /variables endpoint
     platform.py       # Pydantic models for the /platforms endpoint
   cache.py            # Disk cache with 1-hour TTL
-plots/                # Generated PNG files (git-ignored)
 .cache/               # API response cache (git-ignored)
 ```
 

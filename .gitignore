@@ -5,7 +5,6 @@ build/
 dist/
 wheels/
 .cache/
-plots/
 *.egg-info
 
 # Virtual environments

@@ -178,6 +178,7 @@ def plot_category(
     category_name: str,
     game_name: str,
     bins: list[tuple[date, date]],
+    show: bool = False,
 ) -> None:
     by_subcat: dict[str, dict[int, int]] = defaultdict(lambda: defaultdict(int))
     for run in runs:
@@ -195,13 +196,14 @@ def plot_category(
         print(f"No runs found for {category_name}.")
         return
 
-    _plot(by_subcat, bins, title=f"{game_name} — {category_name}")
+    _plot(by_subcat, bins, title=f"{game_name} — {category_name}", show=show)
 
 
 def plot_summary(
     all_runs: list[tuple[list[Run], list[Variable]]],
     game_name: str,
     bins: list[tuple[date, date]],
+    show: bool = False,
 ) -> None:
     by_subcat: dict[str, dict[int, int]] = defaultdict(lambda: defaultdict(int))
     for runs, subcategory_vars in all_runs:
@@ -219,13 +221,14 @@ def plot_summary(
     if not by_subcat:
         return
 
-    _plot(by_subcat, bins, title=f"{game_name} — All categories combined")
+    _plot(by_subcat, bins, title=f"{game_name} — All categories combined", show=show)
 
 
 def _plot(
     by_subcat: dict[str, dict[int, int]],
     bins: list[tuple[date, date]],
     title: str,
+    show: bool = False,
 ) -> None:
     n = len(bins)
     sorted_labels = sorted(
@@ -255,7 +258,10 @@ def _plot(
     path = PLOTS_DIR / f"{slug}.png"
     plt.tight_layout()
     plt.savefig(path, dpi=150)
-    plt.show()
+    if show:
+        plt.show()
+    else:
+        plt.close()
     print(f"  Saved {path}")
 
 
@@ -284,6 +290,7 @@ def plot_pc_vs_console(
     all_runs: list[tuple[list[Run], list[Variable], Category]],
     platform_map: dict[str, str],
     game_name: str,
+    show: bool = False,
 ) -> None:
     bins = month_bins(CUTOFF_DATE)
 
@@ -302,14 +309,16 @@ def plot_pc_vs_console(
     if not by_platform:
         return
 
-    _plot(by_platform, bins, title=f"{game_name} — PC vs Console")
+    _plot(by_platform, bins, title=f"{game_name} — PC vs Console", show=show)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-cache", action="store_true", help="Bypass the disk cache")
+    parser.add_argument("--show", action="store_true", help="Show plots interactively in addition to saving")
     args = parser.parse_args()
     use_cache = not args.no_cache
+    show = args.show
 
     game = get_game(DSR_ID, use_cache=use_cache)
     print(f"Game: {game.names.international}")
@@ -348,10 +357,10 @@ def main() -> None:
     bins = month_bins(first)
 
     for runs, subcategory_vars, category in dropmod_runs:
-        plot_category(runs, subcategory_vars, category.name, game.names.international, bins)
+        plot_category(runs, subcategory_vars, category.name, game.names.international, bins, show=show)
 
-    plot_summary([(r, v) for r, v, _ in dropmod_runs], game.names.international, bins)
-    plot_pc_vs_console(all_runs, platform_map, game.names.international)
+    plot_summary([(r, v) for r, v, _ in dropmod_runs], game.names.international, bins, show=show)
+    plot_pc_vs_console(all_runs, platform_map, game.names.international, show=show)
     export_csv(all_runs, platform_map, game.names.international)
 
 
