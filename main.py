@@ -377,26 +377,22 @@ def plot_submitter_pie(
     if not players_by_label:
         return
 
-    labels = list(players_by_label.keys())
-    sizes = [len(players_by_label[l]) for l in labels]
-    legend_labels = [f"{l} ({len(players_by_label[l])})" for l in labels]
+    dropmod = players_by_label.get("Dropmod", set())
+    no_dropmod = players_by_label.get("No Dropmod", set())
+    slices = [
+        ("Dropmod only",    len(dropmod - no_dropmod)),
+        ("No Dropmod only", len(no_dropmod - dropmod)),
+        ("Both",            len(dropmod & no_dropmod)),
+    ]
+    labels = [s[0] for s in slices]
+    sizes  = [s[1] for s in slices]
+    legend_labels = [f"{l} ({n})" for l, n in slices]
 
-    all_sets = list(players_by_label.values())
-    both = len(all_sets[0] & all_sets[1]) if len(all_sets) == 2 else 0
-    total_unique = len(set.union(*all_sets))
-
+    since = bins[0][0].strftime("%b %Y")
     fig, ax = plt.subplots(figsize=(7, 7))
     ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90)
-    since = bins[0][0].strftime("%b %Y")
     ax.set_title(f"{game_name} — Unique submitters: Dropmod vs No Dropmod\nsince {since}")
     ax.legend(legend_labels, loc="lower center", bbox_to_anchor=(0.5, -0.05))
-    if both:
-        fig.text(
-            0.5, 0.01,
-            f"Note: {both} player(s) submitted both and are counted in each slice "
-            f"({total_unique} unique players in total).",
-            ha="center", fontsize=8, color="gray",
-        )
 
     PLOTS_DIR.mkdir(exist_ok=True)
     slug = re.sub(r"[^a-z0-9]+", "_", ax.get_title().lower()).strip("_")
