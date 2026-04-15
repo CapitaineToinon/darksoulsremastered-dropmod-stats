@@ -9,6 +9,12 @@ class RunSystem(BaseModel):
     platform: str | None = None
 
 
+class RunTimes(BaseModel):
+    primary_t: float
+    realtime_t: float
+    ingame_t: float
+
+
 class Run(BaseModel):
     id: str
     category: str
@@ -16,6 +22,7 @@ class Run(BaseModel):
     status: RunStatus
     values: dict[str, str]
     system: RunSystem
+    times: RunTimes
 
 
 class Pagination(BaseModel):

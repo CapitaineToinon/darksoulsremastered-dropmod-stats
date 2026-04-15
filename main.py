@@ -125,6 +125,17 @@ def has_dropmod_subcategory(variables: list[Variable]) -> bool:
     )
 
 
+def raw_subcategory_label(run: Run, subcategory_vars: list[Variable]) -> str:
+    parts = []
+    for var in subcategory_vars:
+        value_id = run.values.get(var.id)
+        if value_id:
+            detail = var.values.values.get(value_id)
+            if detail:
+                parts.append(detail.label)
+    return " / ".join(parts) if parts else ""
+
+
 def subcategory_label(run: Run, subcategory_vars: list[Variable]) -> str | None:
     for var in subcategory_vars:
         value_id = run.values.get(var.id)
@@ -275,13 +286,26 @@ def export_csv(
 
     with path.open("w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["id", "category", "date", "platform", "dropmod"])
+        writer.writerow([
+            "id", "category", "subcategory", "dropmod",
+            "date", "platform",
+            "time_primary", "time_realtime", "time_ingame",
+        ])
 
         for runs, subcategory_vars, category in all_runs:
             for run in runs:
                 platform_name = platform_map.get(run.system.platform or "", "Unknown")
-                dropmod = subcategory_label(run, subcategory_vars) or ""
-                writer.writerow([run.id, category.name, run.date or "", platform_name, dropmod])
+                writer.writerow([
+                    run.id,
+                    category.name,
+                    raw_subcategory_label(run, subcategory_vars),
+                    subcategory_label(run, subcategory_vars) or "",
+                    run.date or "",
+                    platform_name,
+                    run.times.primary_t,
+                    run.times.realtime_t,
+                    run.times.ingame_t,
+                ])
 
     print(f"Exported {sum(len(r) for r, _, _ in all_runs)} runs to {path}")
 
