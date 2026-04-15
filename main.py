@@ -1,4 +1,5 @@
 import argparse
+import csv
 import json
 import re
 import urllib.parse
@@ -258,15 +259,36 @@ def _plot(
     print(f"  Saved {path}")
 
 
+def export_csv(
+    all_runs: list[tuple[list[Run], list[Variable], Category]],
+    platform_map: dict[str, str],
+    game_name: str,
+) -> None:
+    slug = re.sub(r"[^a-z0-9]+", "_", game_name.lower()).strip("_")
+    path = Path(f"{slug}_runs.csv")
+
+    with path.open("w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["id", "category", "date", "platform", "dropmod"])
+
+        for runs, subcategory_vars, category in all_runs:
+            for run in runs:
+                platform_name = platform_map.get(run.system.platform or "", "Unknown")
+                dropmod = subcategory_label(run, subcategory_vars) or ""
+                writer.writerow([run.id, category.name, run.date or "", platform_name, dropmod])
+
+    print(f"Exported {sum(len(r) for r, _, _ in all_runs)} runs to {path}")
+
+
 def plot_pc_vs_console(
-    all_runs: list[tuple[list[Run], list[Variable]]],
+    all_runs: list[tuple[list[Run], list[Variable], Category]],
     platform_map: dict[str, str],
     game_name: str,
 ) -> None:
     bins = month_bins(CUTOFF_DATE)
 
     by_platform: dict[str, dict[int, int]] = defaultdict(lambda: defaultdict(int))
-    for runs, _ in all_runs:
+    for runs, _, _cat in all_runs:
         for run in runs:
             if run.date is None:
                 continue
@@ -298,23 +320,26 @@ def main() -> None:
     }
 
     all_categories = get_categories(game.id, use_cache=use_cache)
-    categories = [
-        c for c in all_categories
-        if has_dropmod_subcategory(get_variables(c.id, use_cache=use_cache))
-    ]
-    print(f"Eligible categories: {', '.join(c.name for c in categories)}")
 
-    all_runs: list[tuple[list[Run], list[Variable]]] = []
-
-    for category in categories:
+    # Fetch runs for every category
+    all_runs: list[tuple[list[Run], list[Variable], Category]] = []
+    for category in all_categories:
         print(f"Fetching runs for {category.name}…")
         variables = get_variables(category.id, use_cache=use_cache)
         subcategory_vars = [v for v in variables if v.is_subcategory]
         runs = fetch_runs(game.id, category.id, CUTOFF_DATE, use_cache=use_cache)
         print(f"  {len(runs)} runs.")
-        all_runs.append((runs, subcategory_vars))
+        all_runs.append((runs, subcategory_vars, category))
 
-    first = first_dropmod_date(all_runs)
+    # Dropmod plots only for eligible categories
+    dropmod_runs = [
+        (runs, subcategory_vars, category)
+        for runs, subcategory_vars, category in all_runs
+        if has_dropmod_subcategory(subcategory_vars)
+    ]
+    print(f"\nDropmod-eligible: {', '.join(c.name for _, _, c in dropmod_runs)}")
+
+    first = first_dropmod_date([(r, v) for r, v, _ in dropmod_runs])
     if first is None:
         print("No Dropmod runs found.")
         return
@@ -322,11 +347,12 @@ def main() -> None:
 
     bins = month_bins(first)
 
-    for (runs, subcategory_vars), category in zip(all_runs, categories):
+    for runs, subcategory_vars, category in dropmod_runs:
         plot_category(runs, subcategory_vars, category.name, game.names.international, bins)
 
-    plot_summary(all_runs, game.names.international, bins)
+    plot_summary([(r, v) for r, v, _ in dropmod_runs], game.names.international, bins)
     plot_pc_vs_console(all_runs, platform_map, game.names.international)
+    export_csv(all_runs, platform_map, game.names.international)
 
 
 if __name__ == "__main__":
