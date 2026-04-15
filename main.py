@@ -17,6 +17,8 @@ from stats.models import (
     CategoryListResponse,
     Game,
     GameResponse,
+    Platform,
+    PlatformResponse,
     Run,
     RunListResponse,
     Variable,
@@ -52,6 +54,12 @@ def get_game(game_id: str, use_cache: bool = True) -> Game:
 def get_categories(game_id: str, use_cache: bool = True) -> list[Category]:
     return CategoryListResponse.model_validate(
         get(f"games/{game_id}/categories", use_cache=use_cache)
+    ).data
+
+
+def get_platform(platform_id: str, use_cache: bool = True) -> Platform:
+    return PlatformResponse.model_validate(
+        get(f"platforms/{platform_id}", use_cache=use_cache)
     ).data
 
 
@@ -250,6 +258,31 @@ def _plot(
     print(f"  Saved {path}")
 
 
+def plot_pc_vs_console(
+    all_runs: list[tuple[list[Run], list[Variable]]],
+    platform_map: dict[str, str],
+    game_name: str,
+) -> None:
+    bins = month_bins(CUTOFF_DATE)
+
+    by_platform: dict[str, dict[int, int]] = defaultdict(lambda: defaultdict(int))
+    for runs, _ in all_runs:
+        for run in runs:
+            if run.date is None:
+                continue
+            idx = run_month_index(date.fromisoformat(run.date), bins)
+            if idx is None:
+                continue
+            platform_name = platform_map.get(run.system.platform or "", "Unknown")
+            label = "PC" if platform_name == "PC" else "Console"
+            by_platform[label][idx] += 1
+
+    if not by_platform:
+        return
+
+    _plot(by_platform, bins, title=f"{game_name} — PC vs Console")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-cache", action="store_true", help="Bypass the disk cache")
@@ -258,6 +291,11 @@ def main() -> None:
 
     game = get_game(DSR_ID, use_cache=use_cache)
     print(f"Game: {game.names.international}")
+
+    platform_map = {
+        pid: get_platform(pid, use_cache=use_cache).name
+        for pid in game.platforms
+    }
 
     all_categories = get_categories(game.id, use_cache=use_cache)
     categories = [
@@ -288,6 +326,7 @@ def main() -> None:
         plot_category(runs, subcategory_vars, category.name, game.names.international, bins)
 
     plot_summary(all_runs, game.names.international, bins)
+    plot_pc_vs_console(all_runs, platform_map, game.names.international)
 
 
 if __name__ == "__main__":
