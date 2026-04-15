@@ -1,4 +1,6 @@
-# src-categories-stats
+# Dark Souls Remastered — Speedrun Category Popularity Stats
+
+> **Disclaimer:** This code is heavily vibe coded. Don't take the implementation too seriously.
 
 Fetches all verified speedrun submissions for **Dark Souls Remastered** from the [speedrun.com API](https://www.speedrun.com/api) and plots monthly run counts per category, broken down by **Dropmod vs No Dropmod** and **PC vs Console**.
 
@@ -17,10 +19,6 @@ Fetches all verified speedrun submissions for **Dark Souls Remastered** from the
 
 ![All categories combined](plots/dark_souls_remastered_all_categories_combined.png)
 
-### PC vs Console
-
-![PC vs Console](plots/dark_souls_remastered_pc_vs_console.png)
-
 ### Per category
 
 ![Any%](plots/dark_souls_remastered_any.png)
@@ -29,6 +27,12 @@ Fetches all verified speedrun submissions for **Dark Souls Remastered** from the
 ![All Bosses](plots/dark_souls_remastered_all_bosses.png)
 ![All Achievements](plots/dark_souls_remastered_all_achievements.png)
 ![Glitchless](plots/dark_souls_remastered_glitchless.png)
+
+### PC vs Console
+
+> This plot covers all categories from the game's release and is interesting as a general activity indicator, but is not directly related to the Dropmod vs No Dropmod split above.
+
+![PC vs Console](plots/dark_souls_remastered_pc_vs_console.png)
 
 ## Data
 
