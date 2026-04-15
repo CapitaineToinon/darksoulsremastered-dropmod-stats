@@ -23,6 +23,10 @@ Fetches all verified speedrun submissions for **Dark Souls Remastered** from the
 
 ![Unique submitters](plots/dark_souls_remastered_unique_submitters_per_month_dropmod_vs_no_dropmod.png)
 
+### Unique submitters overall (Dropmod vs No Dropmod)
+
+![Unique submitters pie](plots/dark_souls_remastered_unique_submitters_dropmod_vs_no_dropmod.png)
+
 ### Per category
 
 ![Any%](plots/dark_souls_remastered_any.png)

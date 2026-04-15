@@ -352,6 +352,52 @@ def plot_unique_submitters(
     )
 
 
+def plot_submitter_pie(
+    all_runs: list[tuple[list[Run], list[Variable], Category]],
+    game_name: str,
+    bins: list[tuple[date, date]],
+    show: bool = False,
+) -> None:
+    players_by_label: dict[str, set[str]] = defaultdict(set)
+
+    for runs, subcategory_vars, _ in all_runs:
+        for run in runs:
+            if run.date is None:
+                continue
+            if run_month_index(date.fromisoformat(run.date), bins) is None:
+                continue
+            label = subcategory_label(run, subcategory_vars)
+            if label is None:
+                continue
+            player_id = next((p.id for p in run.players if p.id), None)
+            if player_id is None:
+                continue
+            players_by_label[label].add(player_id)
+
+    if not players_by_label:
+        return
+
+    labels = list(players_by_label.keys())
+    sizes = [len(players_by_label[l]) for l in labels]
+    legend_labels = [f"{l} ({len(players_by_label[l])})" for l in labels]
+
+    fig, ax = plt.subplots(figsize=(7, 7))
+    ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90)
+    ax.set_title(f"{game_name} — Unique submitters: Dropmod vs No Dropmod")
+    ax.legend(legend_labels, loc="lower center", bbox_to_anchor=(0.5, -0.05))
+
+    PLOTS_DIR.mkdir(exist_ok=True)
+    slug = re.sub(r"[^a-z0-9]+", "_", ax.get_title().lower()).strip("_")
+    path = PLOTS_DIR / f"{slug}.png"
+    plt.tight_layout()
+    plt.savefig(path, dpi=150)
+    if show:
+        plt.show()
+    else:
+        plt.close()
+    print(f"  Saved {path}")
+
+
 def plot_pc_vs_console(
     all_runs: list[tuple[list[Run], list[Variable], Category]],
     platform_map: dict[str, str],
@@ -427,6 +473,7 @@ def main() -> None:
 
     plot_summary([(r, v) for r, v, _ in dropmod_runs], game.names.international, bins, show=show)
     plot_unique_submitters(dropmod_runs, game.names.international, bins, show=show)
+    plot_submitter_pie(dropmod_runs, game.names.international, bins, show=show)
     plot_pc_vs_console(all_runs, platform_map, game.names.international, show=show)
     export_csv(all_runs, platform_map, game.names.international)
 
